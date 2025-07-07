@@ -4,7 +4,7 @@
 set -e
 
 # Download Konan dependencies used in the build scripts
-./gradlew multiplatform-crypto-api:build
+./gradlew --stacktrace multiplatform-crypto-api:build
 
 # Enter the directory where we build shared (for JVM)
 # and static (for all other targets) libraries
@@ -30,7 +30,7 @@ cp openabe/deps/root/lib/libfl.so ../multiplatform-crypto-libopenabe-bindings/sr
 
 # Build the bindings
 cd ..
-./gradlew multiplatform-crypto-libopenabe-bindings:build --info
+./gradlew multiplatform-crypto-libopenabe-bindings:build --stacktrace --info
 
 # Reset the flag
 set +e

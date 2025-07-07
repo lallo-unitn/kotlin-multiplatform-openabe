@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
-val kotlin_version = "1.6.20"
+val kotlin_version = "1.9.23"
 
 plugins {
     kotlin(PluginsDeps.multiplatform)
