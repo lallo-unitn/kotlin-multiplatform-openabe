@@ -56,7 +56,7 @@ RUN curl -fsSL "https://services.gradle.org/distributions/gradle-${GRADLE_VERSIO
 # --------------------------------------------------------------------------- #
 # 3. Project sources                                                          #
 # --------------------------------------------------------------------------- #
-ARGS BALLS = 1
+ARG BALLS=1
 WORKDIR /workspace
 RUN git clone https://github.com/lallo-unitn/kotlin-multiplatform-openabe.git . \
  && git submodule update --init --recursive

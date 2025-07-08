@@ -2,8 +2,6 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
-val kotlin_version = "1.9.23"
-
 plugins {
     kotlin(PluginsDeps.multiplatform)
     id(PluginsDeps.mavenPublish)
@@ -13,18 +11,15 @@ plugins {
     id(PluginsDeps.dokka)
 }
 
-val sonatypeStaging = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 val sonatypeSnapshots = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
 val sonatypePassword: String? by project
 val sonatypeUsername: String? by project
-val sonatypePasswordEnv: String? = System.getenv()["SONATYPE_PASSWORD"]
-val sonatypeUsernameEnv: String? = System.getenv()["SONATYPE_USERNAME"]
+val sonatypePasswordEnv: String? = System.getenv("SONATYPE_PASSWORD")
+val sonatypeUsernameEnv: String? = System.getenv("SONATYPE_USERNAME")
 
 repositories {
     mavenCentral()
-    maven {
-        url = uri("https://oss.sonatype.org/content/repositories/snapshots")
-    }
+    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
 }
 
 group = ReleaseInfo.group
@@ -38,33 +33,35 @@ kotlin {
     val projectRef = project
 
     runningOnLinuxx86_64 {
-        linuxX64() {
+        linuxX64 {
             compilations.getByName("main") {
                 val libwrapperCinterop by cinterops.creating {
                     defFile(projectRef.file("src/nativeInterop/cinterop/libwrapper.def"))
                 }
             }
-            binaries {
-                staticLib {
-                }
-            }
+            binaries { staticLib {} }
         }
     }
 
     targets.withType<KotlinNativeTarget>().configureEach {
         compilations.all {
-            kotlinOptions.freeCompilerArgs += "-opt-in=kotlinx.cinterop.ExperimentalForeignApi"
+            kotlinOptions.freeCompilerArgs += listOf(
+                "-opt-in=kotlinx.cinterop.ExperimentalForeignApi",
+                "-opt-in=kotlin.concurrent.ExperimentalAtomicApi"
+            )
         }
     }
 
     sourceSets {
         val commonMain by getting {
+            languageSettings.optIn("kotlin.concurrent.ExperimentalAtomicApi")
             dependencies {
                 implementation(kotlin(Deps.Common.stdLib))
                 implementation(kotlin(Deps.Common.test))
             }
         }
         val commonTest by getting {
+            languageSettings.optIn("kotlin.concurrent.ExperimentalAtomicApi")
             dependencies {
                 implementation(kotlin(Deps.Common.test))
                 implementation(kotlin(Deps.Common.testAnnotation))
@@ -72,35 +69,28 @@ kotlin {
             }
         }
 
-        val nativeDependencies = independentDependencyBlock {
-        }
+        val nativeDependencies = independentDependencyBlock {}
 
         val nativeMain by creating {
+            languageSettings.optIn("kotlin.concurrent.ExperimentalAtomicApi")
             dependsOn(commonMain)
-            isRunningInIdea {
-                kotlin.setSrcDirs(emptySet<String>())
-            }
-            dependencies {
-                nativeDependencies(this)
-            }
+            isRunningInIdea { kotlin.setSrcDirs(emptySet<String>()) }
+            dependencies { nativeDependencies(this) }
         }
 
         val nativeTest by creating {
+            languageSettings.optIn("kotlin.concurrent.ExperimentalAtomicApi")
             dependsOn(commonTest)
-            isRunningInIdea {
-                kotlin.setSrcDirs(emptySet<String>())
-            }
+            isRunningInIdea { kotlin.setSrcDirs(emptySet<String>()) }
         }
 
         val linux64Bit = setOf("linuxX64")
 
         targets.withType<KotlinNativeTarget> {
-            compilations.getByName("main") {
-                if (linux64Bit.contains(this@withType.name)) defaultSourceSet.dependsOn(nativeMain)
+            compilations["main"].defaultSourceSet {
+                if (linux64Bit.contains(this@withType.name)) dependsOn(nativeMain)
             }
-            compilations.getByName("test") {
-                defaultSourceSet.dependsOn(nativeTest)
-            }
+            compilations["test"].defaultSourceSet.dependsOn(nativeTest)
         }
 
         val jvmMain by getting {
@@ -123,9 +113,7 @@ kotlin {
         }
 
         runningOnLinuxx86_64 {
-            val linuxX64Main by getting {
-                isRunningInIdea { kotlin.srcDir("src/nativeMain/kotlin") }
-            }
+            val linuxX64Main by getting { isRunningInIdea { kotlin.srcDir("src/nativeMain/kotlin") } }
             val linuxX64Test by getting {
                 dependsOn(nativeTest)
                 isRunningInIdea { kotlin.srcDir("src/nativeTest/kotlin") }
@@ -145,9 +133,7 @@ tasks {
         from(dokkaHtml.get().outputDirectory)
     }
 
-    dokkaHtml {
-        dokkaSourceSets {}
-    }
+    dokkaHtml { dokkaSourceSets {} }
 
     if (getHostOsName() == "linux" && getHostArchitecture() == "x86-64") {
         val jvmTest by getting(Test::class) {
@@ -158,7 +144,6 @@ tasks {
                 showStackTraces = true
             }
         }
-
         val linuxX64Test by getting(KotlinNativeTest::class) {
             testLogging {
                 events("PASSED", "FAILED", "SKIPPED")
@@ -204,7 +189,7 @@ publishing {
             }
             scm {
                 url.set("https://github.com/StefanoBerlato/kotlin-multiplatform-openabe")
-                connection.set("scm:git:git://git@github.com:StefanoBerlato/kotlin-multiplatform-openabe.git")
+                connection.set("scm:git:git://github.com/StefanoBerlato/kotlin-multiplatform-openabe.git")
                 developerConnection.set("scm:git:ssh://git@github.com:StefanoBerlato/kotlin-multiplatform-openabe.git")
             }
         }
