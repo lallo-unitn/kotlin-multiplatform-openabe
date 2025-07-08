@@ -2,6 +2,7 @@ FROM ubuntu:24.04
 
 ARG  GRADLE_VERSION=8.14.3
 ARG  DEBIAN_FRONTEND=noninteractive
+ARG  KOTLIN_VERSION=1.9.23
 
 # --------------------------------------------------------------------------- #
 # 0. System tool-chain & libraries                                            #
@@ -55,6 +56,7 @@ RUN curl -fsSL "https://services.gradle.org/distributions/gradle-${GRADLE_VERSIO
 # --------------------------------------------------------------------------- #
 # 3. Project sources                                                          #
 # --------------------------------------------------------------------------- #
+ARGS BALLS = 1
 WORKDIR /workspace
 RUN git clone https://github.com/lallo-unitn/kotlin-multiplatform-openabe.git . \
  && git submodule update --init --recursive
@@ -116,8 +118,6 @@ RUN test -f wrapper/libwrapperNoDeps.a \
 # 3-E  Kotlin/Native bindings (libopenabe-bindings)                           #
 # --------------------------------------------------------------------------- #
 WORKDIR /workspace
-
-ARG KOTLIN_VERSION=1.9.10
 
 RUN set -e ; \
     echo "forcing Kotlin → $KOTLIN_VERSION" ; \

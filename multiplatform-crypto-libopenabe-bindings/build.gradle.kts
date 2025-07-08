@@ -26,6 +26,7 @@ repositories {
         url = uri("https://oss.sonatype.org/content/repositories/snapshots")
     }
 }
+
 group = ReleaseInfo.group
 version = ReleaseInfo.bindingsVersion
 
@@ -33,13 +34,10 @@ val ideaActive = isInIdea()
 println("Idea active: $ideaActive")
 
 kotlin {
-    val hostOsName = getHostOsName()
     jvm()
     val projectRef = project
 
     runningOnLinuxx86_64 {
-        println("Configuring Linux X86-64 targets")
-
         linuxX64() {
             compilations.getByName("main") {
                 val libwrapperCinterop by cinterops.creating {
@@ -53,16 +51,10 @@ kotlin {
         }
     }
 
-    println(targets.names)
-
     targets.withType<KotlinNativeTarget>().configureEach {
         compilations.all {
             kotlinOptions.freeCompilerArgs += "-opt-in=kotlinx.cinterop.ExperimentalForeignApi"
         }
-    }
-
-    sourceSets.all {
-        languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
     }
 
     sourceSets {
@@ -98,24 +90,15 @@ kotlin {
             isRunningInIdea {
                 kotlin.setSrcDirs(emptySet<String>())
             }
-            dependencies {
-            }
         }
 
-        val linux64Bit = setOf(
-            "linuxX64"
-        )
+        val linux64Bit = setOf("linuxX64")
 
         targets.withType<KotlinNativeTarget> {
-            println("Target $name")
-
             compilations.getByName("main") {
-                if (linux64Bit.contains(this@withType.name)) {
-                    defaultSourceSet.dependsOn(nativeMain)
-                }
+                if (linux64Bit.contains(this@withType.name)) defaultSourceSet.dependsOn(nativeMain)
             }
             compilations.getByName("test") {
-                println("Setting native test dep for $this@withType.name")
                 defaultSourceSet.dependsOn(nativeTest)
             }
         }
@@ -126,11 +109,8 @@ kotlin {
                 implementation(kotlin(Deps.Jvm.stdLib))
                 implementation(kotlin(Deps.Jvm.test))
                 implementation(kotlin(Deps.Jvm.testJUnit))
-
                 implementation(Deps.Jvm.resourceLoader)
-
                 implementation(Deps.Jvm.Delegated.jna)
-
                 implementation("org.slf4j:slf4j-api:1.7.30")
             }
         }
@@ -141,32 +121,21 @@ kotlin {
                 implementation(kotlin(Deps.Jvm.reflection))
             }
         }
-        runningOnLinuxx86_64 {
-            println("Configuring Linux 64 Bit source sets")
 
+        runningOnLinuxx86_64 {
             val linuxX64Main by getting {
-                isRunningInIdea {
-                    kotlin.srcDir("src/nativeMain/kotlin")
-                }
+                isRunningInIdea { kotlin.srcDir("src/nativeMain/kotlin") }
             }
             val linuxX64Test by getting {
                 dependsOn(nativeTest)
-                isRunningInIdea {
-                    kotlin.srcDir("src/nativeTest/kotlin")
-                }
+                isRunningInIdea { kotlin.srcDir("src/nativeTest/kotlin") }
             }
-        }
-
-        all {
         }
     }
 }
 
-
 tasks.whenTaskAdded {
-    if("DebugUnitTest" in name || "ReleaseUnitTest" in name) {
-        enabled = false
-    }
+    if ("DebugUnitTest" in name || "ReleaseUnitTest" in name) enabled = false
 }
 
 tasks {
@@ -177,9 +146,7 @@ tasks {
     }
 
     dokkaHtml {
-        println("Dokka !")
-        dokkaSourceSets {
-        }
+        dokkaSourceSets {}
     }
 
     if (getHostOsName() == "linux" && getHostArchitecture() == "x86-64") {
@@ -204,7 +171,7 @@ tasks {
 }
 
 allprojects {
-    tasks.withType(JavaCompile::class) {
+    tasks.withType(JavaCompile::class).configureEach {
         sourceCompatibility = "1.8"
         targetCompatibility = "1.8"
     }
@@ -242,6 +209,7 @@ publishing {
             }
         }
     }
+
     repositories {
         maven {
             name = "snapshot"
