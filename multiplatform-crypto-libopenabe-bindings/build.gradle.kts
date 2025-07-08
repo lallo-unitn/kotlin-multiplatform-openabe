@@ -32,12 +32,10 @@ version = ReleaseInfo.bindingsVersion
 val ideaActive = isInIdea()
 println("Idea active: $ideaActive")
 
-
 kotlin {
     val hostOsName = getHostOsName()
     jvm()
     val projectRef = project
-
 
     runningOnLinuxx86_64 {
         println("Configuring Linux X86-64 targets")
@@ -57,11 +55,15 @@ kotlin {
 
     println(targets.names)
 
+    targets.withType<KotlinNativeTarget>().configureEach {
+        compilations.all {
+            kotlinOptions.freeCompilerArgs += "-opt-in=kotlinx.cinterop.ExperimentalForeignApi"
+        }
+    }
 
-
-
-
-
+    sourceSets.all {
+        languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
+    }
 
     sourceSets {
         val commonMain by getting {
@@ -100,12 +102,9 @@ kotlin {
             }
         }
 
-        //Set up shared source sets
-        //linux
         val linux64Bit = setOf(
             "linuxX64"
         )
-
 
         targets.withType<KotlinNativeTarget> {
             println("Target $name")
@@ -159,19 +158,14 @@ kotlin {
         }
 
         all {
-//            languageSettings.enableLanguageFeature("InlineClasses")
-//            languageSettings.useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
-//            languageSettings.useExperimentalAnnotation("kotlin.ExperimentalStdlibApi")
         }
     }
 }
 
 
-
-
 tasks.whenTaskAdded {
     if("DebugUnitTest" in name || "ReleaseUnitTest" in name) {
-        enabled = false // https://youtrack.jetbrains.com/issue/KT-34662 otherwise common tests fail, because we require native android libs to be loaded
+        enabled = false
     }
 }
 
@@ -199,7 +193,6 @@ tasks {
         }
 
         val linuxX64Test by getting(KotlinNativeTest::class) {
-
             testLogging {
                 events("PASSED", "FAILED", "SKIPPED")
                 exceptionFormat = TestExceptionFormat.FULL
@@ -221,7 +214,6 @@ signing {
     isRequired = false
     sign(publishing.publications)
 }
-
 
 publishing {
     publications.withType(MavenPublication::class) {
@@ -251,14 +243,6 @@ publishing {
         }
     }
     repositories {
-        /*maven {
-            url = uri(sonatypeStaging)
-            credentials {
-                username = sonatypeUsername ?: sonatypeUsernameEnv ?: ""
-                password = sonatypePassword ?: sonatypePasswordEnv ?: ""
-            }
-        }*/
-
         maven {
             name = "snapshot"
             url = uri(sonatypeSnapshots)
