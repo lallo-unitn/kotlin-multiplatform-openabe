@@ -4,19 +4,25 @@ import it.stefanoberlato.oabe.LibopenabeUtil.freeAndReturn
 import it.stefanoberlato.oabe.State
 import kotlinx.cinterop.*
 
-actual typealias OpenABESymKeyHandleImplObject = cnames.structs.openABESymKeyHandleImpl
+@OptIn(ExperimentalForeignApi::class)
+actual class OpenABESymKeyHandleImplObject(
+    val ptr: CPointer<cnames.structs.openABESymKeyHandleImpl>
+)
 
+@OptIn(ExperimentalForeignApi::class)
 actual class OpenABESymKeyHandleImpl actual constructor(
     keyBytes: ByteArray,
     applyB64Encode: Boolean
 ) {
 
     actual val context: OpenABESymKeyHandleImplObject =
-        libwrapper.openABESymKeyHandleImpl_create(
-            keyBytes = keyBytes.toCValues(),
-            keyBytesLen = keyBytes.size,
-            apply_b64_encode = applyB64Encode
-        )!!.pointed
+        OpenABESymKeyHandleImplObject(
+            libwrapper.openABESymKeyHandleImpl_create(
+                keyBytes = keyBytes.toCValues(),
+                keyBytesLen = keyBytes.size,
+                apply_b64_encode = applyB64Encode
+            ) ?: error("OpenABE symmetric key handle creation failed")
+        )
 
     actual var destroyed: Boolean = false
 

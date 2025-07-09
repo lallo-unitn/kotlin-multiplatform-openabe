@@ -3,18 +3,24 @@ package it.stefanoberlato.oabe
 import it.stefanoberlato.oabe.LibopenabeUtil.freeAndReturn
 import kotlinx.cinterop.*
 
-actual typealias OpenABECryptoContextObject = cnames.structs.openABECryptoContext
+@OptIn(ExperimentalForeignApi::class)
+actual class OpenABECryptoContextObject(
+    val ptr: CPointer<cnames.structs.openABECryptoContext>
+)
 
+@OptIn(ExperimentalForeignApi::class)
 actual class OpenABECryptoContext actual constructor(
     schemeID: SchemeID,
     base64encode: Boolean
 ) {
     
     actual val context: OpenABECryptoContextObject =
-        libwrapper.openABECryptoContext_create(
-            schemeID = schemeID.toString(),
-            base64encode = base64encode
-        )!!.pointed
+        OpenABECryptoContextObject(
+            libwrapper.openABECryptoContext_create(
+                schemeID = schemeID.toString(),
+                base64encode = base64encode
+            )!!
+        )
 
     actual var publicParametersSetup: Boolean = false
     actual var secretParametersSetup: Boolean = false

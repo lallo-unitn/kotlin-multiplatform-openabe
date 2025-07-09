@@ -3,18 +3,24 @@ package it.stefanoberlato.oabe
 import it.stefanoberlato.oabe.LibopenabeUtil.freeAndReturn
 import kotlinx.cinterop.*
 
-actual typealias OpenPKSIGContextObject = cnames.structs.openPKSIGContext
+@OptIn(ExperimentalForeignApi::class)
+actual class OpenPKSIGContextObject(
+    val ptr: CPointer<cnames.structs.openPKSIGContext>
+)
 
+@OptIn(ExperimentalForeignApi::class)
 actual class OpenPKSIGContext actual constructor(
     ecID: ECID,
     base64encode: Boolean
 ) {
 
     actual val context: OpenPKSIGContextObject =
-        libwrapper.openPKSIGContext_create(
-            ecID = ecID.toString(),
-            base64encode = base64encode
-        )!!.pointed
+        OpenPKSIGContextObject(
+            libwrapper.openPKSIGContext_create(
+                ecID = ecID.toString(),
+                base64encode = base64encode
+            )!!
+        )
 
     actual var destroyed: Boolean = false
 

@@ -3,18 +3,24 @@ package it.stefanoberlato.oabe
 import it.stefanoberlato.oabe.LibopenabeUtil.freeAndReturn
 import kotlinx.cinterop.*
 
-actual typealias OpenPKEContextObject = cnames.structs.openPKEContext
+@OptIn(ExperimentalForeignApi::class)
+actual class OpenPKEContextObject(
+    val ptr: CPointer<cnames.structs.openPKEContext>
+)
 
+@OptIn(ExperimentalForeignApi::class)
 actual class OpenPKEContext actual constructor(
     ecID: ECID,
     base64encode: Boolean
 ) {
 
     actual val context: OpenPKEContextObject =
-        libwrapper.openPKEContext_create(
-            ecID = ecID.toString(),
-            base64encode = base64encode
-        )!!.pointed
+        OpenPKEContextObject(
+            libwrapper.openPKEContext_create(
+                ecID = ecID.toString(),
+                base64encode = base64encode
+            )!!
+        )
 
     actual var destroyed: Boolean = false
 

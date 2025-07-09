@@ -44,7 +44,7 @@ RUN curl -fsSL "https://services.gradle.org/distributions/gradle-${GRADLE_VERSIO
     -o /tmp/gradle.zip && unzip -q /tmp/gradle.zip -d /opt && rm /tmp/gradle.zip
 
 
-ARG BALLS=2
+ARG BALLS=3
 WORKDIR /workspace
 RUN git clone https://github.com/lallo-unitn/kotlin-multiplatform-openabe.git . \
  && git submodule update --init --recursive
@@ -93,17 +93,14 @@ WORKDIR /workspace
 
 RUN set -e ; \
     echo "forcing Kotlin → $KOTLIN_VERSION" ; \
-
     if [ -f gradle/libs.versions.toml ]; then \
         sed -i -E "s|kotlin[[:space:]]*=[[:space:]]*\"[0-9]+\.[0-9]+\.[0-9]+\"|kotlin = \"$KOTLIN_VERSION\"|" \
                gradle/libs.versions.toml ; \
     fi ; \
-
     grep -rl --exclude-dir=.git --include='*.gradle.kts' \
         'kotlin("multiplatform") version' | while read -r f ; do \
           sed -i -E "s|(kotlin\\(\"[a-zA-Z0-9-]+\"\\)[^\"]*version[[:space:]]+\")[0-9]+\.[0-9]+\.[0-9]+|\\1$KOTLIN_VERSION|" "$f" ; \
     done ; \
-
     if grep -qr 'kotlin("multiplatform") version' buildSrc 2>/dev/null; then \
         grep -rl 'kotlin("multiplatform") version' buildSrc --include='*.gradle.kts' | while read -r f ; do \
             sed -i -E "s|(kotlin\\(\"[a-zA-Z0-9-]+\"\\)[^\"]*version[[:space:]]+\")[0-9]+\.[0-9]+\.[0-9]+|\\1$KOTLIN_VERSION|" "$f" ; \

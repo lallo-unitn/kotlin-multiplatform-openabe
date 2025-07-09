@@ -3,7 +3,7 @@
 package it.stefanoberlato
 
 import it.stefanoberlato.oabe.LibopenabeUtil
-import kotlin.native.concurrent.AtomicInt
+import kotlin.concurrent.AtomicInt
 
 actual object LibopenabeInitializer {
 
