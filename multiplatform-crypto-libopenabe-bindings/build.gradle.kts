@@ -32,6 +32,10 @@ kotlin {
     jvm()
     val projectRef = project
 
+    sourceSets.all {
+        languageSettings.optIn("kotlin.concurrent.ExperimentalAtomicApi")
+    }
+
     runningOnLinuxx86_64 {
         linuxX64 {
             compilations.getByName("main") {
@@ -54,7 +58,7 @@ kotlin {
 
     sourceSets {
         val commonMain by getting {
-            languageSettings.optIn("kotlin.concurrent.ExperimentalAtomicApi")
+//            languageSettings.optIn("kotlin.concurrent.ExperimentalAtomicApi")
             dependencies {
                 implementation(kotlin(Deps.Common.stdLib))
                 implementation(kotlin(Deps.Common.test))
