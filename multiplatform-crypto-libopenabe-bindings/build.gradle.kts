@@ -54,6 +54,19 @@ kotlin {
                 "-opt-in=kotlin.concurrent.ExperimentalAtomicApi"
             )
         }
+
+        targets.withType<KotlinNativeTarget>().configureEach {
+
+            //  pass library + search-path + its runtime deps to the linker
+            binaries.all {
+                linkerOpts(
+                    "-L${openabeBuildDir.get().asFile}/lib",
+                    "-lopenabe_static",   // the lib we just built
+                    "-lssl", "-lcrypto",  // OpenSSL (OpenABE depends on it)
+                    "-pthread"
+                )
+            }
+        }
     }
 
     sourceSets {
@@ -124,6 +137,9 @@ kotlin {
             }
         }
     }
+    sourceSets.all {
+        languageSettings.optIn("kotlin.concurrent.ExperimentalAtomicApi")
+    }
 }
 
 tasks.whenTaskAdded {
@@ -169,6 +185,28 @@ allprojects {
 signing {
     isRequired = false
     sign(publishing.publications)
+}
+
+val openabeSrc      = projectDir.resolve("openabe")
+val openabeBuildDir = layout.buildDirectory.dir("openabe")
+
+// 1. configure + build static PIC library
+val buildOpenAbe by tasks.register<Exec>("buildOpenAbe") {
+    // mkdir -p build/openabe && cd it
+    workingDir(openabeBuildDir.get().asFile)
+    commandLine(
+        "cmake",
+        "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
+        "-DCMAKE_BUILD_TYPE=Release",
+        openabeSrc.absolutePath
+    )
+    // build target `openabe_static`
+    doLast {
+        exec {
+            workingDir(openabeBuildDir.get().asFile)
+            commandLine("cmake", "--build", ".", "--config", "Release", "--target", "openabe_static")
+        }
+    }
 }
 
 publishing {
